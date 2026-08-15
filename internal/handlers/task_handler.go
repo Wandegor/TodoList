@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 type TaskHandler struct {
@@ -33,6 +34,17 @@ func (h *TaskHandler) writeTasks(w http.ResponseWriter, tasks []models.Task, err
 		log.Println(err)
 	}
 }
+func getTaskId(r *http.Request) (uint, error) {
+	idString := strings.TrimPrefix(r.URL.Path, "/tasks/")
+
+	id, err := strconv.ParseUint(idString, 10, 64) //конверт в uint
+	if err != nil {
+		return 0, appErrors.ErrInvalidTaskID
+	}
+
+	return uint(id), nil
+}
+
 func (h *TaskHandler) GetTasks(w http.ResponseWriter) {
 	tasks, err := h.service.GetActiveTasks()
 	h.writeTasks(w, tasks, err)
@@ -67,15 +79,13 @@ func (h *TaskHandler) CreateTask(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *TaskHandler) DeleteTask(w http.ResponseWriter, r *http.Request) {
-	idString := r.URL.Query().Get("id")
-
-	id, err := strconv.ParseUint(idString, 10, 64) //конверт в uint
+	id, err := getTaskId(r)
 	if err != nil {
-		http.Error(w, appErrors.ErrInvalidTaskID.Error(), http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	err = h.service.DeleteTask(uint(id))
+	err = h.service.DeleteTask(id)
 	if err != nil {
 		if errors.Is(err, appErrors.ErrTaskNotFound) {
 			http.Error(w, err.Error(), http.StatusNotFound)
@@ -90,15 +100,13 @@ func (h *TaskHandler) DeleteTask(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *TaskHandler) CompleteTask(w http.ResponseWriter, r *http.Request) {
-	idString := r.URL.Query().Get("id")
-
-	id, err := strconv.ParseUint(idString, 10, 64) //конверт в uint
+	id, err := getTaskId(r)
 	if err != nil {
-		http.Error(w, appErrors.ErrInvalidTaskID.Error(), http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	task, err := h.service.CompleteTask(uint(id))
+	task, err := h.service.CompleteTask(id)
 	if err != nil {
 		if errors.Is(err, appErrors.ErrTaskNotFound) {
 			http.Error(w, err.Error(), http.StatusNotFound)

@@ -4,8 +4,12 @@ import (
 	"ISpringTODOList/internal/models"
 	"ISpringTODOList/internal/services"
 	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
+	"strconv"
+
+	"gorm.io/gorm"
 )
 
 type TaskHandler struct {
@@ -54,26 +58,24 @@ func (h *TaskHandler) CreateTask(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-//func (h *TaskHandler) DeleteTask(w http.ResponseWriter, r *http.Request) {
-//	var task models.Task
-//
-//	idString := r.URL.Query().Get("id")
-//
-//	id, err := strconv.Atoi(idString) //конверт в int
-//	if err != nil {
-//		http.Error(w, "invalid task id", http.StatusBadRequest)
-//		return
-//	}
-//
-//	if err := h.db.First(&task, id).Error; err != nil {
-//		http.Error(w, "task not found", http.StatusNotFound)
-//		return
-//	}
-//
-//	if err := h.db.Delete(&task).Error; err != nil {
-//		http.Error(w, "failed to delete task", http.StatusInternalServerError)
-//		return
-//	}
-//
-//	w.WriteHeader(http.StatusNoContent)
-//}
+func (h *TaskHandler) DeleteTask(w http.ResponseWriter, r *http.Request) {
+	idString := r.URL.Query().Get("id")
+
+	id, err := strconv.ParseUint(idString, 10, 64) //конверт в uint
+	if err != nil {
+		http.Error(w, "invalid task id", http.StatusBadRequest)
+		return
+	}
+
+	err = h.service.DeleteTask(uint(id))
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			http.Error(w, "task not found", http.StatusNotFound)
+			return
+		}
+		http.Error(w, "failed to delete task", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}

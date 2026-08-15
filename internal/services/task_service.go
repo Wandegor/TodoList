@@ -31,3 +31,13 @@ func (service *TaskService) CreateTask(task *models.Task) error {
 
 	return service.repository.Create(task)
 }
+
+func (service *TaskService) DeleteTask(id uint) error {
+
+	task, err := service.repository.GetByID(id)
+	if err != nil {
+		return err
+	}
+
+	return service.repository.Delete(&task)
+}

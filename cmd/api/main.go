@@ -38,7 +38,7 @@ func main() {
 			taskHandler.CreateTask(w, r)
 		}
 		if r.Method == http.MethodDelete {
-			//taskHandler.DeleteTask(w, r)
+			taskHandler.DeleteTask(w, r)
 		}
 	})
 

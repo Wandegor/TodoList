@@ -13,7 +13,6 @@ import (
 
 func main() {
 
-	log.Printf("Server Start on port 8080")
 	db, err := database.Connect()
 	if err != nil {
 		log.Fatal(err)
@@ -31,22 +30,6 @@ func main() {
 
 	log.Printf("Database AutoMigrate Success")
 
-	http.HandleFunc("/tasks", func(w http.ResponseWriter, r *http.Request) {
-
-		switch r.Method {
-		case http.MethodGet:
-			taskHandler.GetTasks(w)
-		case http.MethodPost:
-			taskHandler.CreateTask(w, r)
-		case http.MethodDelete:
-			taskHandler.DeleteTask(w, r)
-		case http.MethodPatch:
-			taskHandler.CompleteTask(w, r)
-		default:
-			http.Error(w, appErrors.ErrMethodNotAllowed.Error(), http.StatusMethodNotAllowed)
-		}
-
-	})
 	http.HandleFunc("/tasks/archive", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
 			http.Error(w, appErrors.ErrMethodNotAllowed.Error(), http.StatusMethodNotAllowed)
@@ -56,6 +39,32 @@ func main() {
 		taskHandler.GetArchivedTasks(w)
 	})
 
+	http.HandleFunc("/tasks", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			taskHandler.GetTasks(w)
+		case http.MethodPost:
+			taskHandler.CreateTask(w, r)
+		default:
+			http.Error(w, appErrors.ErrMethodNotAllowed.Error(), http.StatusMethodNotAllowed)
+		}
+
+	})
+
+	http.HandleFunc("/tasks/", func(w http.ResponseWriter, r *http.Request) {
+
+		switch r.Method {
+		case http.MethodDelete:
+			taskHandler.DeleteTask(w, r)
+		case http.MethodPatch:
+			taskHandler.CompleteTask(w, r)
+		default:
+			http.Error(w, appErrors.ErrMethodNotAllowed.Error(), http.StatusMethodNotAllowed)
+		}
+
+	})
+
+	log.Printf("Server Start on port 8080")
 	err = http.ListenAndServe(":8080", nil)
 	if err != nil {
 		log.Fatal(err)

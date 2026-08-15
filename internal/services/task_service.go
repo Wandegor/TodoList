@@ -4,6 +4,7 @@ import (
 	"ISpringTODOList/internal/appErrors"
 	"ISpringTODOList/internal/models"
 	"ISpringTODOList/internal/repositories"
+	"strings"
 )
 
 type TaskService struct {
@@ -16,15 +17,11 @@ func NewTaskService(repository repositories.ITaskRepository) *TaskService {
 
 func (service *TaskService) GetTasks() ([]models.Task, error) {
 
-	tasks, err := service.repository.GetAll()
-	if err != nil {
-		return nil, appErrors.ErrGetTasks
-	}
-	return tasks, nil
+	return service.repository.GetAll()
 }
 
 func (service *TaskService) CreateTask(task *models.Task) error {
-	if task.Text == "" {
+	if strings.TrimSpace(task.Text) == "" {
 		return appErrors.ErrTaskTextEmpty
 	}
 
@@ -33,11 +30,7 @@ func (service *TaskService) CreateTask(task *models.Task) error {
 		return appErrors.ErrTaskTextTooLong
 	}
 
-	if err := service.repository.Create(task); err != nil {
-		return appErrors.ErrCreateTask
-	}
-
-	return nil
+	return service.repository.Create(task)
 }
 
 func (service *TaskService) DeleteTask(id uint) error {
@@ -47,9 +40,5 @@ func (service *TaskService) DeleteTask(id uint) error {
 		return err
 	}
 
-	if err := service.repository.Delete(&task); err != nil {
-		return appErrors.ErrDeleteTask
-	}
-
-	return nil
+	return service.repository.Delete(&task)
 }

@@ -24,7 +24,8 @@ func NewTaskHandler(service *services.TaskService) *TaskHandler {
 func (h *TaskHandler) GetTasks(w http.ResponseWriter) {
 	tasks, err := h.service.GetTasks()
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, appErrors.ErrGetTasks.Error(), http.StatusInternalServerError)
+		log.Println(err)
 		return
 	}
 
@@ -39,12 +40,14 @@ func (h *TaskHandler) CreateTask(w http.ResponseWriter, r *http.Request) {
 	var task models.Task
 
 	if err := json.NewDecoder(r.Body).Decode(&task); err != nil {
-		http.Error(w, "invalid request body", http.StatusBadRequest)
+		http.Error(w, appErrors.ErrInvalidRequestBody.Error(), http.StatusBadRequest)
 		return
 	}
 
 	err := h.service.CreateTask(&task)
 	if err != nil {
+		// TODO: придумать как разделить ошибку на техническую/пользовательскую
+		log.Println(err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -72,7 +75,8 @@ func (h *TaskHandler) DeleteTask(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
 		}
-		http.Error(w, appErrors.ErrDeleteTask.Error(), http.StatusInternalServerError)
+		log.Println(err)
+		http.Error(w, appErrors.ErrInternalServerError.Error(), http.StatusInternalServerError)
 		return
 	}
 

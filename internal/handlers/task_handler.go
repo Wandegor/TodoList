@@ -21,8 +21,7 @@ func NewTaskHandler(service *services.TaskService) *TaskHandler {
 	}
 }
 
-func (h *TaskHandler) GetTasks(w http.ResponseWriter) {
-	tasks, err := h.service.GetActiveTasks()
+func (h *TaskHandler) writeTasks(w http.ResponseWriter, tasks []models.Task, err error) {
 	if err != nil {
 		http.Error(w, appErrors.ErrGetTasks.Error(), http.StatusInternalServerError)
 		log.Println(err)
@@ -34,19 +33,14 @@ func (h *TaskHandler) GetTasks(w http.ResponseWriter) {
 		log.Println(err)
 	}
 }
+func (h *TaskHandler) GetTasks(w http.ResponseWriter) {
+	tasks, err := h.service.GetActiveTasks()
+	h.writeTasks(w, tasks, err)
+}
 
 func (h *TaskHandler) GetArchivedTasks(w http.ResponseWriter) {
 	tasks, err := h.service.GetArchivedTasks()
-	if err != nil {
-		http.Error(w, appErrors.ErrGetTasks.Error(), http.StatusInternalServerError)
-		log.Println(err)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(tasks); err != nil {
-		log.Println(err)
-	}
+	h.writeTasks(w, tasks, err)
 }
 
 func (h *TaskHandler) CreateTask(w http.ResponseWriter, r *http.Request) {

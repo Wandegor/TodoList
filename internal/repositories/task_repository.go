@@ -1,7 +1,9 @@
 package repositories
 
 import (
+	"ISpringTODOList/internal/appErrors"
 	"ISpringTODOList/internal/models"
+	"errors"
 
 	"gorm.io/gorm"
 )
@@ -28,6 +30,10 @@ func (repo *taskRepository) GetByID(id uint) (models.Task, error) {
 	var task models.Task
 
 	err := repo.db.First(&task, id).Error
+
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return task, appErrors.ErrTaskNotFound
+	}
 
 	return task, err
 }

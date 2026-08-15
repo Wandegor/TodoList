@@ -1,9 +1,9 @@
 package services
 
 import (
+	"ISpringTODOList/internal/appErrors"
 	"ISpringTODOList/internal/models"
 	"ISpringTODOList/internal/repositories"
-	"errors"
 )
 
 type TaskService struct {
@@ -16,20 +16,28 @@ func NewTaskService(repository repositories.ITaskRepository) *TaskService {
 
 func (service *TaskService) GetTasks() ([]models.Task, error) {
 
-	return service.repository.GetAll()
+	tasks, err := service.repository.GetAll()
+	if err != nil {
+		return nil, appErrors.ErrGetTasks
+	}
+	return tasks, nil
 }
 
 func (service *TaskService) CreateTask(task *models.Task) error {
 	if task.Text == "" {
-		return errors.New("task text is empty")
+		return appErrors.ErrTaskTextEmpty
 	}
 
 	// []rune, т.к len читает байты, а не символы
 	if len([]rune(task.Text)) > 1000 {
-		return errors.New("task text cannot be longer than 1000 characters")
+		return appErrors.ErrTaskTextTooLong
 	}
 
-	return service.repository.Create(task)
+	if err := service.repository.Create(task); err != nil {
+		return appErrors.ErrCreateTask
+	}
+
+	return nil
 }
 
 func (service *TaskService) DeleteTask(id uint) error {
@@ -39,5 +47,9 @@ func (service *TaskService) DeleteTask(id uint) error {
 		return err
 	}
 
-	return service.repository.Delete(&task)
+	if err := service.repository.Delete(&task); err != nil {
+		return appErrors.ErrDeleteTask
+	}
+
+	return nil
 }

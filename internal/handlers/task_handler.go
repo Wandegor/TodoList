@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"ISpringTODOList/internal/appErrors"
 	"ISpringTODOList/internal/models"
 	"ISpringTODOList/internal/services"
 	"encoding/json"
@@ -8,8 +9,6 @@ import (
 	"log"
 	"net/http"
 	"strconv"
-
-	"gorm.io/gorm"
 )
 
 type TaskHandler struct {
@@ -53,7 +52,7 @@ func (h *TaskHandler) CreateTask(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 
-	if err != json.NewEncoder(w).Encode(task) {
+	if err := json.NewEncoder(w).Encode(task); err != nil {
 		log.Println(err)
 	}
 }
@@ -63,17 +62,17 @@ func (h *TaskHandler) DeleteTask(w http.ResponseWriter, r *http.Request) {
 
 	id, err := strconv.ParseUint(idString, 10, 64) //конверт в uint
 	if err != nil {
-		http.Error(w, "invalid task id", http.StatusBadRequest)
+		http.Error(w, appErrors.ErrInvalidTaskID.Error(), http.StatusBadRequest)
 		return
 	}
 
 	err = h.service.DeleteTask(uint(id))
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			http.Error(w, "task not found", http.StatusNotFound)
+		if errors.Is(err, appErrors.ErrTaskNotFound) {
+			http.Error(w, err.Error(), http.StatusNotFound)
 			return
 		}
-		http.Error(w, "failed to delete task", http.StatusInternalServerError)
+		http.Error(w, appErrors.ErrDeleteTask.Error(), http.StatusInternalServerError)
 		return
 	}
 

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"ISpringTODOList/internal/appErrors"
 	"ISpringTODOList/internal/database"
 	"ISpringTODOList/internal/handlers"
 	"ISpringTODOList/internal/models"
@@ -31,18 +32,28 @@ func main() {
 	log.Printf("Database AutoMigrate Success")
 
 	http.HandleFunc("/tasks", func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == http.MethodGet {
+
+		switch r.Method {
+		case http.MethodGet:
 			taskHandler.GetTasks(w)
-		}
-		if r.Method == http.MethodPost {
+		case http.MethodPost:
 			taskHandler.CreateTask(w, r)
-		}
-		if r.Method == http.MethodDelete {
+		case http.MethodDelete:
 			taskHandler.DeleteTask(w, r)
-		}
-		if r.Method == http.MethodPatch {
+		case http.MethodPatch:
 			taskHandler.CompleteTask(w, r)
+		default:
+			http.Error(w, appErrors.ErrMethodNotAllowed.Error(), http.StatusMethodNotAllowed)
 		}
+
+	})
+	http.HandleFunc("/tasks/archive", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			http.Error(w, appErrors.ErrMethodNotAllowed.Error(), http.StatusMethodNotAllowed)
+			return
+		}
+
+		taskHandler.GetArchivedTasks(w)
 	})
 
 	err = http.ListenAndServe(":8080", nil)

@@ -26,6 +26,28 @@ func (repo *taskRepository) GetAll() ([]models.Task, error) {
 	return tasks, err
 }
 
+func (repo *taskRepository) GetActive() ([]models.Task, error) {
+	var tasks []models.Task
+
+	err := repo.db.
+		Where(models.Task{Completed: false}).
+		Find(&tasks).
+		Error
+
+	return tasks, err
+}
+
+func (repo *taskRepository) GetArchived() ([]models.Task, error) {
+	var tasks []models.Task
+
+	err := repo.db.
+		Where(models.Task{Completed: true}).
+		Find(&tasks).
+		Error
+
+	return tasks, err
+}
+
 func (repo *taskRepository) GetByID(id uint) (models.Task, error) {
 	var task models.Task
 

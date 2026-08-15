@@ -15,9 +15,14 @@ func NewTaskService(repository repositories.ITaskRepository) *TaskService {
 	return &TaskService{repository: repository}
 }
 
-func (service *TaskService) GetTasks() ([]models.Task, error) {
+func (service *TaskService) GetActiveTasks() ([]models.Task, error) {
 
-	return service.repository.GetAll()
+	return service.repository.GetActive()
+}
+
+func (service *TaskService) GetArchivedTasks() ([]models.Task, error) {
+
+	return service.repository.GetArchived()
 }
 
 func (service *TaskService) CreateTask(task *models.Task) error {

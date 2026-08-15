@@ -32,7 +32,7 @@ func main() {
 
 	http.HandleFunc("/tasks", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodGet {
-			//taskHandler.GetTasks(w)
+			taskHandler.GetTasks(w)
 		}
 		if r.Method == http.MethodPost {
 			taskHandler.CreateTask(w, r)

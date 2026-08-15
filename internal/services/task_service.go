@@ -14,6 +14,11 @@ func NewTaskService(repository repositories.ITaskRepository) *TaskService {
 	return &TaskService{repository: repository}
 }
 
+func (service *TaskService) GetTasks() ([]models.Task, error) {
+
+	return service.repository.GetAll()
+}
+
 func (service *TaskService) CreateTask(task *models.Task) error {
 	if task.Text == "" {
 		return errors.New("task text is empty")

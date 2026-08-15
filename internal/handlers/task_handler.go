@@ -18,19 +18,19 @@ func NewTaskHandler(service *services.TaskService) *TaskHandler {
 	}
 }
 
-//func (h *TaskHandler) GetTasks(w http.ResponseWriter) {
-//	var tasks []models.Task
-//
-//	if err := h.db.Find(&tasks).Error; err != nil {
-//		log.Fatal(err)
-//	}
-//
-//	w.Header().Set("Content-Type", "application/json")
-//
-//	if err := json.NewEncoder(w).Encode(tasks); err != nil {
-//		log.Println(err)
-//	}
-//}
+func (h *TaskHandler) GetTasks(w http.ResponseWriter) {
+	tasks, err := h.service.GetTasks()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+
+	if err := json.NewEncoder(w).Encode(tasks); err != nil {
+		log.Println(err)
+	}
+}
 
 func (h *TaskHandler) CreateTask(w http.ResponseWriter, r *http.Request) {
 	var task models.Task

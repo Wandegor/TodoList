@@ -3,6 +3,7 @@ package main
 import (
 	"ISpringTODOList/internal/database"
 	"ISpringTODOList/internal/models"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -52,17 +53,15 @@ func main() {
 			log.Fatal(err)
 		}
 
-		printTasks(tasks, w)
+		w.Header().Set("Content-Type", "application/json")
+
+		if err := json.NewEncoder(w).Encode(tasks); err != nil {
+			log.Println(err)
+		}
 	})
 
 	err = http.ListenAndServe(":8080", nil)
 	if err != nil {
 		log.Fatal(err)
-	}
-}
-
-func printTasks(taskItems []models.Task, w http.ResponseWriter) {
-	for index, task := range taskItems {
-		fmt.Fprintln(w, index+1, task)
 	}
 }

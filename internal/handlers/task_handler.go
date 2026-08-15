@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strconv"
 
 	"gorm.io/gorm"
 )
@@ -37,12 +38,12 @@ func (h *TaskHandler) CreateTask(w http.ResponseWriter, r *http.Request) {
 	var task models.Task
 
 	if err := json.NewDecoder(r.Body).Decode(&task); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, "invalid request body", http.StatusBadRequest)
 		return
 	}
 
 	if err := h.db.Create(&task).Error; err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, "failed to create task", http.StatusInternalServerError)
 		return
 	}
 
@@ -52,4 +53,29 @@ func (h *TaskHandler) CreateTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	return
+}
+
+func (h *TaskHandler) DeleteTask(w http.ResponseWriter, r *http.Request) {
+	var task models.Task
+
+	idString := r.URL.Query().Get("id")
+
+	id, err := strconv.Atoi(idString) //конверт в int
+	if err != nil {
+		http.Error(w, "invalid task id", http.StatusBadRequest)
+		return
+	}
+
+	if err := h.db.First(&task, id).Error; err != nil {
+		http.Error(w, "task not found", http.StatusNotFound)
+		return
+	}
+
+	if err := h.db.Delete(&task).Error; err != nil {
+		http.Error(w, "failed to delete task", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(task.ID)
 }

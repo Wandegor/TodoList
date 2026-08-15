@@ -2,8 +2,8 @@ package main
 
 import (
 	"ISpringTODOList/internal/database"
+	"ISpringTODOList/internal/handlers"
 	"ISpringTODOList/internal/models"
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -13,11 +13,11 @@ func main() {
 
 	log.Printf("Server Start on port 8080")
 	db, err := database.Connect()
-
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	taskHandler := handlers.NewTaskHandler(db)
 	log.Printf("Database Connect Success")
 
 	err = db.AutoMigrate(&models.Task{})
@@ -47,16 +47,11 @@ func main() {
 	})
 
 	http.HandleFunc("/tasks", func(w http.ResponseWriter, r *http.Request) {
-		var tasks []models.Task
-
-		if err := db.Find(&tasks).Error; err != nil {
-			log.Fatal(err)
+		if r.Method == http.MethodGet {
+			taskHandler.GetTasks(w)
 		}
-
-		w.Header().Set("Content-Type", "application/json")
-
-		if err := json.NewEncoder(w).Encode(tasks); err != nil {
-			log.Println(err)
+		if r.Method == http.MethodPost {
+			taskHandler.CreateTask(w, r)
 		}
 	})
 

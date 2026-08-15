@@ -7,4 +7,5 @@ type ITaskRepository interface {
 	GetByID(id uint) (models.Task, error)
 	Create(task *models.Task) error
 	Delete(task *models.Task) error
+	Update(task *models.Task) error
 }

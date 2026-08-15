@@ -42,3 +42,17 @@ func (service *TaskService) DeleteTask(id uint) error {
 
 	return service.repository.Delete(&task)
 }
+
+func (service *TaskService) CompleteTask(id uint) (models.Task, error) {
+	task, err := service.repository.GetByID(id)
+	if err != nil {
+		return task, err
+	}
+
+	task.Completed = true
+	if err := service.repository.Update(&task); err != nil {
+		return task, err
+	}
+
+	return task, nil
+}

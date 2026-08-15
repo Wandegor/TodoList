@@ -45,3 +45,7 @@ func (repo *taskRepository) Create(task *models.Task) error {
 func (repo *taskRepository) Delete(task *models.Task) error {
 	return repo.db.Delete(task).Error
 }
+
+func (repo *taskRepository) Update(task *models.Task) error {
+	return repo.db.Save(task).Error
+}

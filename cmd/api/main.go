@@ -40,6 +40,9 @@ func main() {
 		if r.Method == http.MethodDelete {
 			taskHandler.DeleteTask(w, r)
 		}
+		if r.Method == http.MethodPatch {
+			taskHandler.CompleteTask(w, r)
+		}
 	})
 
 	err = http.ListenAndServe(":8080", nil)

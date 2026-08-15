@@ -30,7 +30,6 @@ func (h *TaskHandler) GetTasks(w http.ResponseWriter) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-
 	if err := json.NewEncoder(w).Encode(tasks); err != nil {
 		log.Println(err)
 	}
@@ -54,7 +53,6 @@ func (h *TaskHandler) CreateTask(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-
 	if err := json.NewEncoder(w).Encode(task); err != nil {
 		log.Println(err)
 	}
@@ -81,4 +79,30 @@ func (h *TaskHandler) DeleteTask(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *TaskHandler) CompleteTask(w http.ResponseWriter, r *http.Request) {
+	idString := r.URL.Query().Get("id")
+
+	id, err := strconv.ParseUint(idString, 10, 64) //конверт в uint
+	if err != nil {
+		http.Error(w, appErrors.ErrInvalidTaskID.Error(), http.StatusBadRequest)
+		return
+	}
+
+	task, err := h.service.CompleteTask(uint(id))
+	if err != nil {
+		if errors.Is(err, appErrors.ErrTaskNotFound) {
+			http.Error(w, err.Error(), http.StatusNotFound)
+			return
+		}
+		log.Println(err)
+		http.Error(w, appErrors.ErrInternalServerError.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(task); err != nil {
+		log.Println(err)
+	}
 }

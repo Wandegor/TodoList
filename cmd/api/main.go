@@ -4,6 +4,8 @@ import (
 	"ISpringTODOList/internal/database"
 	"ISpringTODOList/internal/handlers"
 	"ISpringTODOList/internal/models"
+	"ISpringTODOList/internal/repositories"
+	"ISpringTODOList/internal/services"
 	"log"
 	"net/http"
 )
@@ -16,7 +18,9 @@ func main() {
 		log.Fatal(err)
 	}
 
-	taskHandler := handlers.NewTaskHandler(db)
+	repository := repositories.NewTaskRepository(db)
+	service := services.NewTaskService(repository)
+	taskHandler := handlers.NewTaskHandler(service)
 	log.Printf("Database Connect Success")
 
 	err = db.AutoMigrate(&models.Task{})
@@ -28,13 +32,13 @@ func main() {
 
 	http.HandleFunc("/tasks", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodGet {
-			taskHandler.GetTasks(w)
+			//taskHandler.GetTasks(w)
 		}
 		if r.Method == http.MethodPost {
 			taskHandler.CreateTask(w, r)
 		}
 		if r.Method == http.MethodDelete {
-			taskHandler.DeleteTask(w, r)
+			//taskHandler.DeleteTask(w, r)
 		}
 	})
 

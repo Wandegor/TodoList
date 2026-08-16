@@ -21,6 +21,6 @@
 
 5. `GET /tasks/archive` - Получение архивных задач (возвращает список выполненных задач)
 
-Запуск проекта: `docker compose -f build/docker-compose.yaml up -d database`
+Запуск проекта: `docker compose -f build/docker-compose.yaml up --build`
 
 Запуск тестов(из корня): `go test ./tests -v` 

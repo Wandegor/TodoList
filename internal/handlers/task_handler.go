@@ -2,6 +2,8 @@ package handlers
 
 import (
 	"ISpringTODOList/internal/appErrors"
+	"ISpringTODOList/internal/dto"
+	"ISpringTODOList/internal/handlers/mappers"
 	"ISpringTODOList/internal/models"
 	"ISpringTODOList/internal/services"
 	"encoding/json"
@@ -29,8 +31,10 @@ func (h *TaskHandler) writeTasks(w http.ResponseWriter, tasks []models.Task, err
 		return
 	}
 
+	response := mappers.MapToTaskResponseDTOs(tasks)
+
 	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(tasks); err != nil {
+	if err := json.NewEncoder(w).Encode(response); err != nil {
 		log.Println(err)
 	}
 }
@@ -56,11 +60,15 @@ func (h *TaskHandler) GetArchivedTasks(w http.ResponseWriter) {
 }
 
 func (h *TaskHandler) CreateTask(w http.ResponseWriter, r *http.Request) {
-	var task models.Task
+	var request dto.TaskRequestDTO
 
-	if err := json.NewDecoder(r.Body).Decode(&task); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		http.Error(w, appErrors.ErrInvalidRequestBody.Error(), http.StatusBadRequest)
 		return
+	}
+
+	task := models.Task{
+		Text: request.Text,
 	}
 
 	err := h.service.CreateTask(&task)
@@ -76,9 +84,11 @@ func (h *TaskHandler) CreateTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	response := mappers.MapToTaskResponseDTO(task)
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	if err := json.NewEncoder(w).Encode(task); err != nil {
+	if err := json.NewEncoder(w).Encode(response); err != nil {
 		log.Println(err)
 	}
 }
@@ -112,6 +122,7 @@ func (h *TaskHandler) CompleteTask(w http.ResponseWriter, r *http.Request) {
 	}
 
 	task, err := h.service.CompleteTask(id)
+
 	if err != nil {
 		if errors.Is(err, appErrors.ErrTaskNotFound) {
 			http.Error(w, err.Error(), http.StatusNotFound)
@@ -122,8 +133,10 @@ func (h *TaskHandler) CompleteTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	response := mappers.MapToTaskResponseDTO(*task)
+
 	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(task); err != nil {
+	if err := json.NewEncoder(w).Encode(response); err != nil {
 		log.Println(err)
 	}
 }

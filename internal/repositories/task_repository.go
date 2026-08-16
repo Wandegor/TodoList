@@ -18,19 +18,12 @@ func NewTaskRepository(db *gorm.DB) ITaskRepository {
 	}
 }
 
-func (repo *taskRepository) GetAll() ([]models.Task, error) {
-	var tasks []models.Task
-
-	err := repo.db.Find(&tasks).Error
-
-	return tasks, err
-}
-
 func (repo *taskRepository) GetActive() ([]models.Task, error) {
 	var tasks []models.Task
 
 	err := repo.db.
-		Where(models.Task{Completed: false}).
+		// в gorm zero values игнорят, поэтому через условие
+		Where("completed = ?", false).
 		Find(&tasks).
 		Error
 

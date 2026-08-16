@@ -468,3 +468,44 @@ func TestAPI_GetArchivedTasks(t *testing.T) {
 		assert.True(t, task.Completed)
 	}
 }
+
+func TestAPI_MethodNotAllowed(t *testing.T) {
+	server, _ := setupTestServer(t)
+	defer server.Close()
+
+	req, err := http.NewRequest(
+		http.MethodPut, // не поддерживается
+		server.URL+"/tasks",
+		nil,
+	)
+	require.NoError(t, err)
+
+	resp, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+
+	defer func() {
+		_ = resp.Body.Close()
+	}()
+
+	assert.Equal(t, http.StatusMethodNotAllowed, resp.StatusCode)
+}
+
+func TestAPI_InternalServerError(t *testing.T) {
+	server, db := setupTestServer(t)
+	defer server.Close()
+
+	closedDb, err := db.DB()
+	require.NoError(t, err)
+
+	err = closedDb.Close() // специально закрыл
+	require.NoError(t, err)
+
+	resp, err := http.Get(server.URL + "/tasks")
+	require.NoError(t, err)
+
+	defer func() {
+		_ = resp.Body.Close()
+	}()
+
+	assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
+}

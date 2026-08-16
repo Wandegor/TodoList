@@ -56,5 +56,5 @@
 
 ### Общие API tests
 
-1. [ ] Неподдерживаемый HTTP-метод → `405 Method Not Allowed`.
-2. [ ] Техническая ошибка сервера → `500 Internal Server Error`.
+1. [x] Неподдерживаемый HTTP-метод (PUT) → `405 Method Not Allowed`.
+2. [x] Техническая ошибка сервера → `500 Internal Server Error`.

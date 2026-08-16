@@ -1,4 +1,4 @@
-package main
+package tests
 
 import (
 	"ISpringTODOList/internal/database"
@@ -7,35 +7,27 @@ import (
 	"ISpringTODOList/internal/repositories"
 	"ISpringTODOList/internal/router"
 	"ISpringTODOList/internal/services"
-	"log"
-	"net/http"
+	"net/http/httptest"
+	"testing"
+
+	"github.com/stretchr/testify/require"
+	"gorm.io/gorm"
 )
 
-func main() {
+func setupTestServer(t *testing.T) (*httptest.Server, *gorm.DB) {
+	t.Helper() // маркер
 
 	db, err := database.Connect()
-	if err != nil {
-		log.Fatal(err)
-	}
+	require.NoError(t, err)
+
+	err = db.AutoMigrate(&models.Task{})
+	require.NoError(t, err)
 
 	repository := repositories.NewTaskRepository(db)
 	service := services.NewTaskService(repository)
 	taskHandler := handlers.NewTaskHandler(service)
-	log.Printf("Database Connect Success")
-
-	err = db.AutoMigrate(&models.Task{})
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	log.Printf("Database AutoMigrate Success")
 
 	mux := router.SetupRouter(taskHandler)
 
-	log.Printf("Server Start on port 8080")
-
-	err = http.ListenAndServe(":8080", mux)
-	if err != nil {
-		log.Fatal(err)
-	}
+	return httptest.NewServer(mux), db
 }

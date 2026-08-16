@@ -28,6 +28,17 @@ func TestTaskService_CreateTask_EmptyText(t *testing.T) {
 	repo := &mockTaskRepository{}
 	service := services.NewTaskService(repo)
 
+	task := &models.Task{Text: ""}
+
+	err := service.CreateTask(task)
+
+	assert.ErrorIs(t, err, appErrors.ErrTaskTextEmpty)
+	assert.False(t, repo.CreateCalled)
+}
+func TestTaskService_CreateTask_OnlySpacesText(t *testing.T) {
+	repo := &mockTaskRepository{}
+	service := services.NewTaskService(repo)
+
 	task := &models.Task{Text: "    "}
 
 	err := service.CreateTask(task)

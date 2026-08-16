@@ -65,9 +65,14 @@ func (h *TaskHandler) CreateTask(w http.ResponseWriter, r *http.Request) {
 
 	err := h.service.CreateTask(&task)
 	if err != nil {
-		// TODO: придумать как разделить ошибку на техническую/пользовательскую
-		log.Println(err)
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		switch {
+		case errors.Is(err, appErrors.ErrTaskTextEmpty),
+			errors.Is(err, appErrors.ErrTaskTextTooLong):
+			http.Error(w, err.Error(), http.StatusBadRequest)
+		default:
+			log.Println(err)
+			http.Error(w, appErrors.ErrInternalServerError.Error(), http.StatusInternalServerError)
+		}
 		return
 	}
 

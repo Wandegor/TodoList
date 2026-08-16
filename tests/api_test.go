@@ -382,3 +382,75 @@ func TestAPI_DeleteTask_NotFound(t *testing.T) {
 
 	assert.Equal(t, http.StatusNotFound, resp.StatusCode)
 }
+
+// GET `/tasks`
+
+func TestAPI_GetTasks(t *testing.T) {
+	server, db := setupTestServer(t)
+	defer server.Close()
+
+	var createdIDs []uint
+	defer cleanupTasks(t, db, createdIDs)
+
+	activeTask := createTestTask(t, server, "API active task")
+	completedTask := createTestTask(t, server, "API completed task")
+
+	createdIDs = append(createdIDs, activeTask.ID, completedTask.ID)
+
+	completeTestTask(t, server, completedTask.ID)
+
+	resp, err := http.Get(server.URL + "/tasks")
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	assert.Equal(t, "application/json", resp.Header.Get("Content-Type"))
+
+	var tasks []dto.TaskResponseDTO
+
+	err = json.NewDecoder(resp.Body).Decode(&tasks)
+	require.NoError(t, err)
+
+	assert.Contains(t, tasks, activeTask)
+	assert.NotContains(t, tasks, completedTask)
+
+	for _, task := range tasks {
+		assert.False(t, task.Completed)
+	}
+}
+
+// GET /tasks/archive
+
+func TestAPI_GetArchivedTasks(t *testing.T) {
+	server, db := setupTestServer(t)
+	defer server.Close()
+
+	var createdIDs []uint
+	defer cleanupTasks(t, db, createdIDs)
+
+	activeTask := createTestTask(t, server, "API active task")
+	completedTask := createTestTask(t, server, "API completed task")
+
+	createdIDs = append(createdIDs, activeTask.ID, completedTask.ID)
+
+	completedTask = completeTestTask(t, server, completedTask.ID)
+
+	resp, err := http.Get(server.URL + "/tasks/archive")
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	assert.Equal(t, "application/json", resp.Header.Get("Content-Type"))
+
+	var tasks []dto.TaskResponseDTO
+
+	err = json.NewDecoder(resp.Body).Decode(&tasks)
+	require.NoError(t, err)
+
+	assert.Contains(t, tasks, completedTask)
+	assert.NotContains(t, tasks, activeTask)
+
+	for _, task := range tasks {
+		assert.True(t, task.Completed)
+	}
+}

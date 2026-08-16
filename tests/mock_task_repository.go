@@ -8,6 +8,7 @@ type mockTaskRepository struct {
 	UpdateCalled bool
 	GetCalled    bool
 
+	Tasks    []models.Task
 	Task     models.Task
 	GetError error
 }

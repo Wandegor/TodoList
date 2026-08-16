@@ -21,6 +21,7 @@ func TestTaskService_CreateTask(t *testing.T) {
 
 	assert.Nil(t, err)
 	assert.True(t, repo.CreateCalled)
+	assert.Equal(t, task, &repo.Task)
 }
 
 func TestTaskService_CreateTask_EmptyText(t *testing.T) {

@@ -3,6 +3,13 @@ package tests
 import "ISpringTODOList/internal/models"
 
 type mockTaskRepository struct {
+	CreateCalled bool
+	DeleteCalled bool
+	UpdateCalled bool
+	GetCalled    bool
+
+	Task     models.Task
+	GetError error
 }
 
 func (m *mockTaskRepository) GetActive() ([]models.Task, error) {
@@ -14,17 +21,20 @@ func (m *mockTaskRepository) GetArchived() ([]models.Task, error) {
 }
 
 func (m *mockTaskRepository) GetByID(id uint) (models.Task, error) {
-	return models.Task{}, nil
+	return m.Task, m.GetError
 }
 
 func (m *mockTaskRepository) Create(task *models.Task) error {
-	return nil
+	m.CreateCalled = true
+	return m.GetError
 }
 
 func (m *mockTaskRepository) Delete(task *models.Task) error {
-	return nil
+	m.DeleteCalled = true
+	return m.GetError
 }
 
 func (m *mockTaskRepository) Update(task *models.Task) error {
-	return nil
+	m.UpdateCalled = true
+	return m.GetError
 }

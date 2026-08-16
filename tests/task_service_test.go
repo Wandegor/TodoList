@@ -54,5 +54,4 @@ func TestTaskService_UpdateTask(t *testing.T) {
 	assert.Nil(t, err)
 	assert.True(t, repo.UpdateCalled)
 	assert.Equal(t, task, result)
-
 }

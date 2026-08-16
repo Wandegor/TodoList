@@ -13,6 +13,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -92,4 +93,107 @@ func TestAPI_CreateTask(t *testing.T) {
 	assert.False(t, task.Completed)
 
 	createdIDs = append(createdIDs, task.ID)
+}
+
+func TestAPI_CreateTask_InvalidJson(t *testing.T) {
+	server, db := setupTestServer(t)
+	defer server.Close()
+
+	var createdIDs []uint
+	defer func() {
+		cleanupTasks(t, db, createdIDs)
+	}()
+
+	body := `"{ text":"API test task"`
+
+	resp, err := http.Post(
+		server.URL+"/tasks",
+		"application/json",
+		bytes.NewBufferString(body),
+	)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+}
+
+func TestAPI_CreateTask_EmptyText(t *testing.T) {
+	server, db := setupTestServer(t)
+	defer server.Close()
+
+	var createdIDs []uint
+	defer func() {
+		cleanupTasks(t, db, createdIDs)
+	}()
+
+	request := dto.TaskRequestDTO{
+		Text: "",
+	}
+
+	jsonBody, err := json.Marshal(request)
+	require.NoError(t, err)
+
+	resp, err := http.Post(
+		server.URL+"/tasks",
+		"application/json",
+		bytes.NewReader(jsonBody),
+	)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+}
+
+func TestAPI_CreateTask_WhitespaceText(t *testing.T) {
+	server, db := setupTestServer(t)
+	defer server.Close()
+
+	var createdIDs []uint
+	defer func() {
+		cleanupTasks(t, db, createdIDs)
+	}()
+
+	request := dto.TaskRequestDTO{
+		Text: "     ",
+	}
+
+	jsonBody, err := json.Marshal(request)
+	require.NoError(t, err)
+
+	resp, err := http.Post(
+		server.URL+"/tasks",
+		"application/json",
+		bytes.NewReader(jsonBody),
+	)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+}
+
+func TestAPI_CreateTask_TooLongText(t *testing.T) {
+	server, db := setupTestServer(t)
+	defer server.Close()
+
+	var createdIDs []uint
+	defer func() {
+		cleanupTasks(t, db, createdIDs)
+	}()
+
+	request := dto.TaskRequestDTO{
+		Text: strings.Repeat("r", 1001),
+	}
+
+	jsonBody, err := json.Marshal(request)
+	require.NoError(t, err)
+
+	resp, err := http.Post(
+		server.URL+"/tasks",
+		"application/json",
+		bytes.NewReader(jsonBody),
+	)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 }

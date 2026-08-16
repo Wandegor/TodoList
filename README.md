@@ -23,4 +23,4 @@
 
 Запуск проекта: `docker compose -f build/docker-compose.yaml up -d database`
 
-Запуск тестов: `go test ./...`
+Запуск тестов(из корня): `go test ./tests -v` 

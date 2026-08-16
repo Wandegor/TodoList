@@ -110,6 +110,20 @@ func completeTestTask(t *testing.T, server *httptest.Server, id uint) dto.TaskRe
 	return task
 }
 
+func getNonExistingTaskID(t *testing.T, db *gorm.DB) uint {
+	t.Helper()
+
+	var maxID uint
+
+	err := db.Model(&models.Task{}).
+		Select("COALESCE(MAX(id), 0)").
+		Scan(&maxID).
+		Error
+	require.NoError(t, err)
+
+	return maxID + 1
+}
+
 func TestAPI_CreateTask(t *testing.T) {
 	server, db := setupTestServer(t)
 	defer server.Close()
@@ -281,10 +295,10 @@ func TestAPI_CompleteTask(t *testing.T) {
 }
 
 func TestAPI_CompleteTask_NotFound(t *testing.T) {
-	server, _ := setupTestServer(t)
+	server, db := setupTestServer(t)
 	defer server.Close()
 
-	id := 899 // TODO: сделать на 100% не существующий
+	id := getNonExistingTaskID(t, db) // TODO: сделать на 100% не существующий
 	req, err := http.NewRequest(
 		http.MethodPatch,
 		server.URL+"/tasks/"+strconv.FormatUint(uint64(id), 10),
@@ -365,10 +379,10 @@ func TestAPI_DeleteTask_InvalidID(t *testing.T) {
 }
 
 func TestAPI_DeleteTask_NotFound(t *testing.T) {
-	server, _ := setupTestServer(t)
+	server, db := setupTestServer(t)
 	defer server.Close()
 
-	id := 899 // TODO: сделать на 100% не существующий
+	id := getNonExistingTaskID(t, db)
 	req, err := http.NewRequest(
 		http.MethodDelete,
 		server.URL+"/tasks/"+strconv.FormatUint(uint64(id), 10),

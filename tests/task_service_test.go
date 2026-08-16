@@ -4,6 +4,7 @@ import (
 	"ISpringTODOList/internal/appErrors"
 	"ISpringTODOList/internal/models"
 	"ISpringTODOList/internal/services"
+	"errors"
 	"strings"
 	"testing"
 
@@ -107,4 +108,63 @@ func TestTaskService_CompleteTask_NotFound(t *testing.T) {
 	assert.ErrorIs(t, err, appErrors.ErrTaskNotFound)
 	assert.False(t, repo.UpdateCalled)
 	assert.Nil(t, result)
+}
+
+func TestTaskService_CreateTask_RepositoryError(t *testing.T) {
+	repoError := errors.New("repository create error")
+
+	repo := &mockTaskRepository{
+		CreateError: repoError,
+	}
+
+	service := services.NewTaskService(repo)
+
+	task := &models.Task{
+		Text: "Test task",
+	}
+
+	err := service.CreateTask(task)
+
+	assert.ErrorIs(t, err, repoError)
+	assert.True(t, repo.CreateCalled)
+}
+
+func TestTaskService_DeleteTask_RepositoryError(t *testing.T) {
+	repoError := errors.New("repository delete error")
+
+	repo := &mockTaskRepository{
+		Task: models.Task{
+			ID:   1,
+			Text: "Test task",
+		},
+		DeleteError: repoError,
+	}
+
+	service := services.NewTaskService(repo)
+
+	err := service.DeleteTask(1)
+
+	assert.ErrorIs(t, err, repoError)
+	assert.True(t, repo.DeleteCalled)
+}
+
+func TestTaskService_CompleteTask_RepositoryError(t *testing.T) {
+	repoError := errors.New("repository update error")
+
+	repo := &mockTaskRepository{
+		Task: models.Task{
+			ID:        1,
+			Text:      "Test task",
+			Completed: false,
+		},
+		UpdateError: repoError,
+	}
+
+	service := services.NewTaskService(repo)
+
+	result, err := service.CompleteTask(1)
+
+	assert.ErrorIs(t, err, repoError)
+	assert.Nil(t, result)
+	assert.True(t, repo.UpdateCalled)
 }

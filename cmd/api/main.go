@@ -1,6 +1,7 @@
 package main
 
 import (
+	"ISpringTODOList/internal/config"
 	"ISpringTODOList/internal/database"
 	"ISpringTODOList/internal/handlers"
 	"ISpringTODOList/internal/models"
@@ -9,11 +10,18 @@ import (
 	"ISpringTODOList/internal/services"
 	"log"
 	"net/http"
+	"os"
 )
 
 func main() {
-
-	db, err := database.Connect()
+	mainDbConfig := config.DatabaseConfig{
+		Host:     os.Getenv("DB_HOST"),
+		Port:     os.Getenv("DB_PORT"),
+		User:     os.Getenv("DB_USER"),
+		Password: os.Getenv("DB_PASSWORD"),
+		Name:     os.Getenv("DB_NAME"),
+	}
+	db, err := database.Connect(mainDbConfig)
 	if err != nil {
 		log.Fatal(err)
 	}

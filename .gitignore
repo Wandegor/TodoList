@@ -7,7 +7,6 @@ go.imports.xml
 
 # Go build artifacts
 /bin/
-/build/
 /dist/
 
 # Binaries

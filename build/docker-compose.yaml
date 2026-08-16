@@ -1,0 +1,29 @@
+services:
+  api:
+    build:
+      context: ..
+      dockerfile: build/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      DB_HOST: database
+      DB_PORT: 5432
+      DB_USER: wander
+      DB_PASSWORD: wandersPassword
+      DB_NAME: todoList
+    depends_on:
+      - database
+
+  database:
+    image: postgres:18-alpine  # легкая
+    environment:
+      POSTGRES_USER: wander
+      POSTGRES_PASSWORD: wandersPassword
+      POSTGRES_DB: todoList
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql
+
+volumes:
+  postgres_data:
